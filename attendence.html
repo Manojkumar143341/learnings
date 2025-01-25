@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Program</title>
+    <link rel="stylesheet" href="attendence.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Student Attendance System</h1>
+
+        <table id="attendanceTable">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Student Name</th>
+                    <th>Profile Photo</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Student Rows will be inserted here dynamically -->
+            </tbody>
+        </table>
+
+        <br>
+        <button class="settings-btn" onclick="openSettingsModal()">Add Student</button>
+        <button onclick="generateReport()">Generate Report</button>
+        <button onclick="downloadReport()">Download Report</button>
+
+        <div id="reportModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Attendance Report</h2>
+                <ul id="reportList"></ul>
+                <!-- Percentage info will be inserted here -->
+            </div>
+        </div>
+
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeSettingsModal()">&times;</span>
+                <h2>Settings</h2>
+                <div class="add-student-container">
+                    <label for="newStudentName">Student Name:</label>
+                    <input type="text" id="newStudentName" placeholder="Enter student's name">
+
+                    <label for="newStudentRoll">Roll Number:</label>
+                    <input type="text" id="newStudentRoll" placeholder="Enter student's roll number">
+
+                    <div class="upload-photo-container">
+                        <label for="newStudentPhoto">Upload Profile Photo:</label>
+                        <input type="file" id="newStudentPhoto">
+                    </div>
+
+                    <button onclick="addStudent()">Add Student</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+
+    <script>
+        // Function to mark attendance for a student
+        function markAttendance(button) {
+            const currentText = button.textContent.trim();
+
+            // Toggle between Present and Absent
+            if (currentText === "Present") {
+                button.innerHTML = '<i class="fa fa-times"></i> Absent';
+                button.style.backgroundColor = '#dc3545';
+            } else {
+                button.innerHTML = '<i class="fa fa-check"></i> Present';
+                button.style.backgroundColor = '#28a745';
+            }
+        }
+
+        // Function to delete a student from the table
+        function deleteStudent(button) {
+            const row = button.closest('tr');
+            row.remove();
+            showNotification("Student deleted successfully!");
+        }
+
+        // Function to open the settings modal
+        function openSettingsModal() {
+            document.getElementById("settingsModal").style.display = "block";
+        }
+
+        // Function to close the settings modal
+        function closeSettingsModal() {
+            document.getElementById("settingsModal").style.display = "none";
+        }
+
+        // Function to open the report modal
+        function generateReport() {
+            const students = document.querySelectorAll("#attendanceTable tbody tr");
+            const reportList = document.getElementById("reportList");
+            reportList.innerHTML = '';
+            
+            let presentCount = 0;
+            let absentCount = 0;
+
+            students.forEach(student => {
+                const roll = student.cells[0].textContent;
+                const name = student.cells[1].textContent;
+                const status = student.cells[3].querySelector("button").textContent.trim();
+                
+                if (status === "Present") {
+                    presentCount++;
+                } else {
+                    absentCount++;
+                }
+
+                const listItem = document.createElement('li');
+                listItem.textContent = `${name} (Roll: ${roll}) - ${status}`;
+                reportList.appendChild(listItem);
+            });
+
+            const totalStudents = students.length;
+            const presentPercentage = totalStudents > 0 ? (presentCount / totalStudents) * 100 : 0;
+            const absentPercentage = totalStudents > 0 ? (absentCount / totalStudents) * 100 : 0;
+
+            const percentageSection = document.createElement('div');
+            percentageSection.innerHTML = `
+                <p><strong>Present: </strong>${presentCount} (${presentPercentage.toFixed(2)}%)</p>
+                <p><strong>Absent: </strong>${absentCount} (${absentPercentage.toFixed(2)}%)</p>
+            `;
+            
+            const modalContent = document.querySelector("#reportModal .modal-content");
+            modalContent.appendChild(percentageSection);
+
+            document.getElementById("reportModal").style.display = "block";
+        }
+
+        // Function to close the report modal
+        function closeModal() {
+            document.getElementById("reportModal").style.display = "none";
+        }
+
+        // Function to download the report as a CSV file
+        function downloadReport() {
+            const students = document.querySelectorAll("#attendanceTable tbody tr");
+            let csvContent = "Roll No, Student Name, Status\n";
+
+            let presentCount = 0;
+            let absentCount = 0;
+
+            students.forEach(student => {
+                const roll = student.cells[0].textContent;
+                const name = student.cells[1].textContent;
+                const status = student.cells[3].querySelector("button").textContent.trim();
+                
+                if (status === "Present") {
+                    presentCount++;
+                } else {
+                    absentCount++;
+                }
+
+                csvContent += `${roll}, ${name}, ${status}\n`;
+            });
+
+            const totalStudents = students.length;
+            const presentPercentage = totalStudents > 0 ? (presentCount / totalStudents) * 100 : 0;
+            const absentPercentage = totalStudents > 0 ? (absentCount / totalStudents) * 100 : 0;
+
+            // Adding present and absent percentages at the end of the report
+            csvContent += `\nTotal Present: ${presentCount} (${presentPercentage.toFixed(2)}%)\n`;
+            csvContent += `Total Absent: ${absentCount} (${absentPercentage.toFixed(2)}%)\n`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'attendance_report.csv';
+            link.click();
+        }
+
+        // Function to add a new student
+        function addStudent() {
+            const studentName = document.getElementById("newStudentName").value.trim();
+            const rollNumber = document.getElementById("newStudentRoll").value.trim();
+            const photoInput = document.getElementById("newStudentPhoto");
+            const file = photoInput.files[0] || null;
+
+            if (!studentName || !rollNumber) {
+                showNotification("Please enter both name and roll number.");
+                return;
+            }
+
+            // Check for duplicate roll number
+            const existingRows = document.querySelectorAll("#attendanceTable tbody tr");
+            for (let row of existingRows) {
+                if (row.cells[0].textContent === rollNumber) {
+                    showNotification("Duplicate roll number found!");
+                    return;
+                }
+            }
+
+            const photoURL = file ? URL.createObjectURL(file) : "https://via.placeholder.com/40";
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${rollNumber}</td>
+                <td>${studentName}</td>
+                <td><img class="profile-photo" src="${photoURL}" alt="${studentName}'s photo"></td>
+                <td><button class="status-button" onclick="markAttendance(this)"><i class="fa fa-check"></i> Present</button></td>
+                <td class="student-actions">
+                    <button onclick="deleteStudent(this)">Delete</button>
+                </td>
+            `;
+            document.querySelector("#attendanceTable tbody").appendChild(newRow);
+            closeSettingsModal();
+            showNotification("Student added successfully!");
+        }
+
+        // Function to display notification
+        function showNotification(message) {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.style.display = "block";
+
+            setTimeout(() => {
+                notification.style.display = "none";
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>

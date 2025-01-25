@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students Attendance Percentage Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-field {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Attendance Percentage Calculator</h1>
+
+    <!-- Input fields for total students and number of students present -->
+    <div class="input-field">
+      <label for="total_students">Total Number of Students:</label>
+      <input type="number" id="total_students" placeholder="Enter total number of students">
+    </div>
+
+    <div class="input-field">
+      <label for="present_students">Number of Students Present:</label>
+      <input type="number" id="present_students" placeholder="Enter number of students present">
+    </div>
+
+    <button onclick="calculateAttendance()">Calculate Attendance</button>
+
+    <!-- Result display -->
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function calculateAttendance() {
+      // Get the input values for total students and present students
+      const totalStudents = parseInt(document.getElementById('total_students').value);
+      const presentStudents = parseInt(document.getElementById('present_students').value);
+
+      // Check if the input values are valid
+      if (isNaN(totalStudents) || isNaN(presentStudents) || totalStudents === 0 || presentStudents > totalStudents) {
+        document.getElementById('result').innerHTML = 'Please enter valid numbers for both fields.';
+        return;
+      }
+
+      // Calculate present and absent percentages
+      const presentPercentage = (presentStudents / totalStudents) * 100;
+      const absentPercentage = 100 - presentPercentage;
+
+      // Display the result
+      document.getElementById('result').innerHTML = `
+        Total Students: ${totalStudents}<br>
+        Students Present: ${presentStudents}<br>
+        Attendance Percentage: ${presentPercentage.toFixed(2)}%<br>
+        Absent Percentage: ${absentPercentage.toFixed(2)}%
+      `;
+    }
+  </script>
+
+</body>
+</html>
